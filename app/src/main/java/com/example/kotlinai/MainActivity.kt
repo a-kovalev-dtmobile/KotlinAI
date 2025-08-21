@@ -1,5 +1,7 @@
 package com.example.kotlinai
 
+import dagger.hilt.android.AndroidEntryPoint
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +22,7 @@ import com.example.kotlinai.screens.onboarding.OnboardingScreen
 import com.example.kotlinai.screens.main.MainScreen
 import com.example.kotlinai.navigation.AppNavigation
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
