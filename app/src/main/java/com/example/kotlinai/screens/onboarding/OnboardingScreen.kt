@@ -39,6 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 
 private data class Slide(val imageRes: Int, val title: String, val subtitle: String)
 
@@ -101,6 +107,17 @@ fun OnboardingScreen(onContinue: () -> Unit) {
     }
 
     // coroutineScope removed — button now always calls onContinue()
+    val context = LocalContext.current
+
+    // Permission launcher that will call onContinue() when camera permission is granted
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted: Boolean ->
+        if (granted) {
+            onContinue()
+        }
+        // if denied, stay on onboarding (could show rationale/snackbar)
+    }
 
     Scaffold { innerPadding ->
         Column(
@@ -185,7 +202,18 @@ fun OnboardingScreen(onContinue: () -> Unit) {
             val buttonTextRes = if (isLast) com.example.kotlinai.R.string.onboard_allow_camera else com.example.kotlinai.R.string.onboard_next
 
             Button(
-                onClick = { onContinue() },
+                onClick = {
+                    val hasCamera = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (hasCamera) {
+                        onContinue()
+                    } else {
+                        cameraLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(0.8f),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(

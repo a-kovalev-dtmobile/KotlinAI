@@ -2,6 +2,10 @@ package com.example.kotlinai.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import android.Manifest
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,7 +21,15 @@ fun AppNavigation(navController: NavHostController, modifier: Modifier = Modifie
         modifier = modifier
     ) {
         composable(Destinations.Splash) {
-            SplashScreen(onContinue = { navController.navigate(Destinations.Onboarding) })
+            val context = LocalContext.current
+            val hasCamera = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+
+            SplashScreen(onContinue = {
+                if (hasCamera) navController.navigate(Destinations.Main) else navController.navigate(Destinations.Onboarding)
+            })
         }
         composable(Destinations.Onboarding) {
             OnboardingScreen(onContinue = { navController.navigate(Destinations.Main) })
