@@ -10,10 +10,12 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +40,8 @@ fun ScanScreen() {
     }
 
     var scannedText by remember { mutableStateOf<String?>(null) }
+    var scannedBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var scanningEnabled by remember { mutableStateOf(true) }
 
     val launcher = rememberLauncherForActivityResult(RequestPermission()) { granted ->
         hasPermission = granted
@@ -76,9 +80,17 @@ fun ScanScreen() {
                             val scanner = BarcodeScanning.getClient(options)
 
                             imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy ->
-                                processImageProxy(scanner, imageProxy) { value ->
-                                    // update Compose state on detection
-                                    scannedText = value
+                                if (scanningEnabled) {
+                                    processImageProxy(scanner, imageProxy, previewView) { value, bitmap ->
+                                        // disable further scanning while results screen is open
+                                        scanningEnabled = false
+                                        // update Compose state on detection
+                                        scannedText = value
+                                        scannedBitmap = bitmap
+                                    }
+                                } else {
+                                    // not scanning, just close the frame
+                                    imageProxy.close()
                                 }
                             }
 
@@ -96,21 +108,13 @@ fun ScanScreen() {
                 modifier = Modifier.fillMaxSize()
             )
 
-            // overlay for scanned text
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                scannedText?.let {
-                    Text(text = it)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { scannedText = null }) {
-                        Text("Clear")
-                    }
+            // Results overlay when a QR is detected (delegated)
+            scannedText?.let { resultText ->
+                ResultsScreen(resultText = resultText, bitmap = scannedBitmap) {
+                    // close results and re-enable scanning
+                    scannedText = null
+                    scannedBitmap = null
+                    scanningEnabled = true
                 }
             }
         } else {
@@ -132,7 +136,8 @@ fun ScanScreen() {
 private fun processImageProxy(
     scanner: com.google.mlkit.vision.barcode.BarcodeScanner,
     imageProxy: ImageProxy,
-    onBarcodeDetected: (String) -> Unit
+    previewView: PreviewView,
+    onBarcodeDetected: (String, android.graphics.Bitmap?) -> Unit
 ) {
     val mediaImage = imageProxy.image
     if (mediaImage != null) {
@@ -142,7 +147,14 @@ private fun processImageProxy(
                 for (barcode in barcodes) {
                     val rawValue = barcode.rawValue
                     if (!rawValue.isNullOrEmpty()) {
-                        onBarcodeDetected(rawValue)
+                        // try to capture a bitmap from the PreviewView (may be null)
+                        val bitmap: android.graphics.Bitmap? = try {
+                            previewView.bitmap
+                        } catch (t: Throwable) {
+                            null
+                        }
+
+                        onBarcodeDetected(rawValue, bitmap)
                         break
                     }
                 }
