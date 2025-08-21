@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="medium_turquoise">#5CE1CD</color>
+    <color name="heliotrope">#E056F1</color>
+    <color name="very_light_blue">#5A6CF3</color>
+    <color name="spiro_disco_ball">#2DC0FF</color>
+    <color name="big_foot_feet">#F08F5F</color>
 </resources>
