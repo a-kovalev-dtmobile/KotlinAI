@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">KotlinAI</string>
+    <string name="onboard_title_1">Scan Every\nQR &amp; Barcode</string>
+    <string name="onboard_subtitle_1">Enjoy fast and precise scanning. Keep track of your discoveries and never loose a favorite find again.</string>
+    <string name="onboard_title_2">Create QR\nThat Never Expires</string>
+    <string name="onboard_subtitle_2">Instantly create a custom QR for your business and personal needs from contact to WIFI access, event, or website.</string>
+    <string name="onboard_title_3">Instant Scanning\nOne Step Away</string>
+    <string name="onboard_subtitle_3">The app needs access to your camera to function.</string>
+    <string name="onboard_next">Next</string>
+    <string name="onboard_allow_camera">Allow Camera Access</string>
 </resources>
