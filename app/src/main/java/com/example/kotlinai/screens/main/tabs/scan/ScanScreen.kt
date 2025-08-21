@@ -13,6 +13,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
@@ -42,6 +43,11 @@ fun ScanScreen() {
     var scannedText by remember { mutableStateOf<String?>(null) }
     var scannedBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var scanningEnabled by remember { mutableStateOf(true) }
+
+    // hold the camera so UI can control zoom
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    // linear zoom in range [0f..1f]
+    var zoom by remember { mutableStateOf(0f) }
 
     val launcher = rememberLauncherForActivityResult(RequestPermission()) { granted ->
         hasPermission = granted
@@ -97,7 +103,17 @@ fun ScanScreen() {
                             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                             cameraProvider.unbindAll()
-                            cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
+                            val cam = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageAnalysis)
+                            // expose camera to Compose for UI controls
+                            camera = cam
+                            // try to initialize zoom value by observing zoomState
+                            try {
+                                cam.cameraInfo.zoomState.observe(lifecycleOwner) { state ->
+                                    zoom = state.linearZoom
+                                }
+                            } catch (t: Throwable) {
+                                // ignore observation failures
+                            }
                         } catch (e: Exception) {
                             Log.e("ScanScreen", "Failed to bind camera use cases", e)
                         }
@@ -115,6 +131,32 @@ fun ScanScreen() {
                     scannedText = null
                     scannedBitmap = null
                     scanningEnabled = true
+                }
+            }
+
+            // Zoom slider overlay at bottom
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (camera != null) {
+                    Slider(
+                        value = zoom,
+                        onValueChange = { value ->
+                            zoom = value
+                            try {
+                                camera?.cameraControl?.setLinearZoom(value)
+                            } catch (t: Throwable) {
+                                // ignore
+                            }
+                        },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.fillMaxWidth(0.6f)
+                    )
+                    Text(text = "Zoom: ${"%.0f".format(zoom * 100)}%")
                 }
             }
         } else {
