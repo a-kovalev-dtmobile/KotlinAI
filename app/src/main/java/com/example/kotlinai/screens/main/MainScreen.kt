@@ -7,7 +7,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.colorResource
 import com.example.kotlinai.R
@@ -18,6 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.kotlinai.screens.main.tabs.favorites.FavoritesScreen
+import com.example.kotlinai.screens.main.tabs.history.HistoryScreen
+import com.example.kotlinai.screens.main.tabs.personal.PersonalScreen
+import com.example.kotlinai.screens.main.tabs.scan.ScanScreen
+import com.example.kotlinai.screens.main.tabs.settings.SettingsScreen
 
 private enum class Tab(val title: String) {
     Personal("Personal"),
@@ -128,11 +132,11 @@ fun MainScreen() {
             contentAlignment = Alignment.Center
         ) {
             when (selectedTab) {
-                Tab.Personal -> Text("Personal Screen")
-                Tab.History -> Text("History Screen")
-                Tab.Scan -> Text("Scan Screen")
-                Tab.Favorites -> Text("Favorites Screen")
-                Tab.Settings -> Text("Settings Screen")
+                Tab.Personal -> PersonalScreen()
+                Tab.History -> HistoryScreen()
+                Tab.Scan -> ScanScreen()
+                Tab.Favorites -> FavoritesScreen()
+                Tab.Settings -> SettingsScreen()
             }
         }
     }
